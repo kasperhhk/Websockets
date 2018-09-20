@@ -1,0 +1,21 @@
+﻿<h1>Overskrift!</h1>
+<p>Body!</p>
+<button onclick="test()"></button>
+<script>
+    function test() {
+        var socket = new WebSocket("ws://" + window.location.host + "/websocket");
+        console.log(socket);
+        socket.addEventListener("open", function() {
+            console.log("open", arguments);
+        });
+        socket.addEventListener("close", function() {
+            console.log("close", arguments);
+        });
+        socket.addEventListener("error", function () {
+            console.log("error", arguments);
+        });
+        socket.addEventListener("message", function () {
+            console.log("message", arguments);
+        });
+    }
+</script>
