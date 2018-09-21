@@ -1,39 +1,55 @@
 ﻿namespace Web.Controllers
 {
     using System;
-    using System.Linq;
-    using System.Net;
     using System.Net.WebSockets;
-    using System.Text;
-    using System.Threading;
     using System.Threading.Tasks;
     using System.Web.Mvc;
     using System.Web.WebSockets;
-
+    
     public class WebsocketController : Controller
     {
         public ActionResult Index()
         {
-            ControllerContext.HttpContext.AcceptWebSocketRequest(AcceptWebsocket);
-            return new HttpStatusCodeResult(HttpStatusCode.SwitchingProtocols);
+            return new WebSocketResult(AcceptWebsocket);
         }
 
         private async Task AcceptWebsocket(AspNetWebSocketContext context)
         {
-            await Task.Delay(1000);
-            await Send(context.WebSocket, "Hello");
+            try
+            {
+                var send = SendHelloWorld(context);
+                var receive = Receive(context);
 
-            await Task.Delay(1000);
-            await Send(context.WebSocket, "World");
-
-            await Task.Delay(1000);
-            await Send(context.WebSocket, "2018!");
+                await Task.WhenAll(send, receive);
+            }
+            catch (Exception ex)
+            {
+                var x = 10;
+            }
         }
 
-        private async Task Send(WebSocket websocket, string message)
+        private async Task Receive(AspNetWebSocketContext context)
         {
-            var bytes = Encoding.UTF8.GetPreamble().Concat(Encoding.UTF8.GetBytes(message)).ToArray();
-            await websocket.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, CancellationToken.None);
+            while (context.WebSocket.State == WebSocketState.Open)
+            {
+                var str = await context.WebSocket.ReceiveString();
+                if (context.WebSocket.State == WebSocketState.Open)
+                {
+                    await context.WebSocket.SendString("Received message: " + str);
+                }
+            }
+        }
+
+        private async Task SendHelloWorld(AspNetWebSocketContext context)
+        {
+            await Task.Delay(1000);
+            await context.WebSocket.SendString("Hello");
+
+            await Task.Delay(1000);
+            await context.WebSocket.SendString("World");
+
+            await Task.Delay(1000);
+            await context.WebSocket.SendString("2018!");
         }
     }
 }

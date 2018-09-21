@@ -1,21 +1,35 @@
 ﻿<h1>Overskrift!</h1>
-<p>Body!</p>
-<button onclick="test()"></button>
+<p id="data"></p>
+<button onclick="test()">open</button><br/>
+<input id="inp"/><button onclick="send()">send</button><br/>
+<button onclick="kappa()">close</button>
 <script>
+    var socket;
+    var data = document.getElementById("data");
+    var inp = document.getElementById("inp");
     function test() {
-        var socket = new WebSocket("ws://" + window.location.host + "/websocket");
+        socket = new WebSocket("ws://" + window.location.host + "/websocket");
         console.log(socket);
         socket.addEventListener("open", function() {
-            console.log("open", arguments);
+            data.innerHTML += "Connection opened, receiving data:<br/>";
         });
         socket.addEventListener("close", function() {
-            console.log("close", arguments);
+            data.innerHTML += "Connection closed, stopped receiving data.<br/>";
         });
         socket.addEventListener("error", function () {
-            console.log("error", arguments);
+            console.error("error", arguments);
+            data.innerHTML += "Error in connection";
         });
-        socket.addEventListener("message", function () {
-            console.log("message", arguments);
+        socket.addEventListener("message", function (msg) {
+            data.innerHTML += (msg.data + "<br/>");
         });
+    }
+
+    function send() {
+        socket.send(inp.value);
+    }
+
+    function kappa() {
+        socket.close();
     }
 </script>
